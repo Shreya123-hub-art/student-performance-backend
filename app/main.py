@@ -17,7 +17,7 @@ collection = db["predictions"]
 # -------------------------
 # Load ML Model
 # -------------------------
-model = joblib.load("trained_model/model.pkl")
+model = joblib.load("trained_model/model.pkl") # model = joblib.load("trained_model/model.pkl")
 
 # SHAP Explainer
 explainer = shap.TreeExplainer(model)
@@ -53,7 +53,7 @@ def predict_performance(data: StudentInput):
             data.previous_score
         ]]
 
-        prediction = model.predict(input_data)[0]
+        prediction = 1  # temporary dummy prediction
 
         if prediction == 2:
             result = "Excellent"
