@@ -116,7 +116,7 @@ def analytics():
 @app.get("/graph-data")
 def graph_data():
     try:
-        data = list(collection.find({}, {"_id": 0})
+        data = list(collection.find({}, {"_id": 0}))
 
         attendance = [d["attendance"] for d in data]
         assignment = [d["assignment_score"] for d in data]
