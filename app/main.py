@@ -1,26 +1,16 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import joblib
 import numpy as np
-import shap
 from pymongo import MongoClient
 
 app = FastAPI()
 
 # -------------------------
-# MongoDB Atlas Connection ✅
+# MongoDB Atlas Connection
 # -------------------------
 client = MongoClient("mongodb+srv://tantryshreya352_db_user:shreya123@cluster0.nthtnx2.mongodb.net/")
 db = client["student_db"]
 collection = db["predictions"]
-
-# -------------------------
-# Load ML Model
-# -------------------------
-model = joblib.load("trained_model/model.pkl") # model = joblib.load("trained_model/model.pkl")
-
-# SHAP Explainer
-explainer = shap.TreeExplainer(model)
 
 # -------------------------
 # Input Schema
@@ -40,28 +30,20 @@ def home():
     return {"message": "Student Performance API Running"}
 
 # -------------------------
-# Predict API
+# Predict API (LOGIC BASED)
 # -------------------------
 @app.post("/predict")
 def predict_performance(data: StudentInput):
     try:
-        input_data = [[
-            data.attendance,
-            data.assignment_score,
-            data.internal_marks,
-            data.participation,
-            data.previous_score
-        ]]
-
-        prediction = 1  # temporary dummy prediction
-
-        if prediction == 2:
+        # Simple intelligent logic
+        if data.attendance > 90 and data.assignment_score > 85:
             result = "Excellent"
-        elif prediction == 1:
+        elif data.attendance > 60:
             result = "Average"
         else:
             result = "At Risk"
 
+        # Save to MongoDB
         record = {
             "attendance": data.attendance,
             "assignment_score": data.assignment_score,
@@ -74,29 +56,6 @@ def predict_performance(data: StudentInput):
         collection.insert_one(record)
 
         return {"prediction": result}
-
-    except Exception as e:
-        return {"error": str(e)}
-
-# -------------------------
-# SHAP Explain API
-# -------------------------
-@app.post("/explain")
-def explain(data: StudentInput):
-    try:
-        input_array = np.array([[
-            data.attendance,
-            data.assignment_score,
-            data.internal_marks,
-            data.participation,
-            data.previous_score
-        ]])
-
-        shap_values = explainer.shap_values(input_array)
-
-        return {
-            "shap_values": shap_values[0].tolist()
-        }
 
     except Exception as e:
         return {"error": str(e)}
@@ -157,7 +116,7 @@ def analytics():
 @app.get("/graph-data")
 def graph_data():
     try:
-        data = list(collection.find({}, {"_id": 0}))
+        data = list(collection.find({}, {"_id": 0})
 
         attendance = [d["attendance"] for d in data]
         assignment = [d["assignment_score"] for d in data]
